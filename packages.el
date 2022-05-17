@@ -51,3 +51,13 @@
 
 (package! solarized-theme)
 (package! ng2-mode)
+(package! edit-server)
+
+(package! dash)
+(package! dash-functional)
+(package! ejira :recipe
+  (:host github
+   :repo "nyyManni/ejira"
+   :files ("*.el" "*.el")))
+
+(package! edn)

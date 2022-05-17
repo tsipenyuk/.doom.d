@@ -69,6 +69,7 @@
 (setq-default tab-width 2)
 (setq standard-indent 2)
 
+(setq org-log-done 'time)
 
 (map! :leader
       :desc "recursive grep"
@@ -103,7 +104,19 @@
       :desc "fill to end"
       "l f" #'fill-to-end)
 
+(map! :leader
+      :desc "ejira update"
+      "e u" #'ejira-update-my-projects)
 
+(map! :leader
+      :desc "ejira push item"
+      "e p" #'ejira-push-item-under-point)
+
+(map! :leader
+      "f o" #'find-file-other-window)
+
+(map! :leader
+      "l r" #'string-rectangle)
 
 ;;(setq-hook! 'ng2-html-mode-hook +format-with 'prettier)
 (setq prettier-js-args '(
@@ -111,7 +124,7 @@
                          "--bracket-spacing" "true"
                          "--tab-width" "2"
                          "--semi" "false"
-                         "--single-quote" "true"
+                         "--single-quote" "false"
                          ))
 
 (defun fill-to-end (char)
@@ -138,3 +151,50 @@
     (when filename
       (kill-new filename)
       (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+;; org-jira config
+(edit-server-start)
+
+;; ejira
+(use-package! ejira-agenda)
+(use-package! ejira
+  :init
+  (setq jiralib2-url              "https://zollsoft.atlassian.net"
+        jiralib2-auth             'basic
+        jiralib2-user-login-name  "arseniy.tsipenyuk@zollsoft.de"
+        jiralib2-token            "nM8nj0XrxLJBaEVf643y50AD"
+
+        ;; NOTE, this directory needs to be in `org-agenda-files'`
+        ejira-org-directory       "~/personal/gdrive/org/jira"
+        ejira-projects            '("ADI" "AZKO")
+
+        ejira-priorities-alist    '(("Highest" . ?A)
+                                    ("High"    . ?B)
+                                    ("Medium"  . ?C)
+                                    ("Low"     . ?D)
+                                    ("Lowest"  . ?E))
+        ejira-todo-states-alist   '(("To Do"       . 1)
+                                    ("In Progress" . 2)
+                                    ("Done"        . 3)))
+  :config
+  ;; Tries to auto-set custom fields by looking into /editmeta
+  ;; of an issue and an epic.
+  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+
+  ;; They can also be set manually if autoconfigure is not used.
+  ;; (setq ejira-sprint-field       'customfield_10001
+  ;;       ejira-epic-field         'customfield_10002
+  ;;       ejira-epic-summary-field 'customfield_10004)
+
+
+  ;; Make the issues visisble in your agenda by adding `ejira-org-directory'
+  ;; into your `org-agenda-files'.
+  (add-to-list 'org-agenda-files ejira-org-directory)
+
+  ;; Add an agenda view to browse the issues that
+  (org-add-agenda-custom-command
+   '("j" "My JIRA issues"
+     ((ejira-jql "resolution = unresolved and assignee = currentUser()"
+                 ((org-agenda-overriding-header "Assigned to me")))))))
+
+(setq ejira-update-jql-unresolved-fn #'ejira-jql-my-unresolved-project-tickets)
