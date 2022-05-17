@@ -59,6 +59,8 @@
 
 (keyboard-translate ?\C-t ?\C-x)
 (keyboard-translate ?\C-x ?\C-t)
+(keyboard-translate ?\" ?\')
+(keyboard-translate ?\' ?\")
 
 (after! org
         (setq org-roam-directory "~/personal/gdrive/org/roam/")
