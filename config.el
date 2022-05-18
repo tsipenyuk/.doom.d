@@ -61,6 +61,8 @@
 (keyboard-translate ?\C-x ?\C-t)
 (keyboard-translate ?\" ?\')
 (keyboard-translate ?\' ?\")
+(keyboard-translate ?\: ?\;)
+(keyboard-translate ?\; ?\:)
 
 (after! org
         (setq org-roam-directory "~/personal/gdrive/org/roam/")
@@ -164,7 +166,7 @@
   (setq jiralib2-url              "https://zollsoft.atlassian.net"
         jiralib2-auth             'basic
         jiralib2-user-login-name  "arseniy.tsipenyuk@zollsoft.de"
-        jiralib2-token            "nM8nj0XrxLJBaEVf643y50AD"
+        jiralib2-token            ""
 
         ;; NOTE, this directory needs to be in `org-agenda-files'`
         ejira-org-directory       "~/personal/gdrive/org/jira"
