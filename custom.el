@@ -12,7 +12,7 @@
  '(cua-overwrite-cursor-color "#b58900")
  '(cua-read-only-cursor-color "#859900")
  '(custom-safe-themes
-   '("4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3" "fee7287586b17efbfda432f05539b58e86e059e78006ce9237b8732fde991b4c" "4f1d2476c290eaa5d9ab9d13b60f2c0f1c8fa7703596fa91b235db7f99a9441b" "cf922a7a5c514fad79c483048257c5d8f242b21987af0db813d3f0b138dfaf53" default))
+   '("97db542a8a1731ef44b60bc97406c1eb7ed4528b0d7296997cbb53969df852d6" "745d03d647c4b118f671c49214420639cb3af7152e81f132478ed1c649d4597d" "4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3" "fee7287586b17efbfda432f05539b58e86e059e78006ce9237b8732fde991b4c" "4f1d2476c290eaa5d9ab9d13b60f2c0f1c8fa7703596fa91b235db7f99a9441b" "cf922a7a5c514fad79c483048257c5d8f242b21987af0db813d3f0b138dfaf53" default))
  '(exwm-floating-border-color "#011417")
  '(fci-rule-color "#405A61")
  '(highlight-changes-colors '("#d33682" "#6c71c4"))
@@ -37,6 +37,8 @@
  '(nrepl-message-colors
    '("#dc322f" "#cb4b16" "#b58900" "#5b7300" "#b3c34d" "#0061a8" "#2aa198" "#d33682" "#6c71c4"))
  '(objed-cursor-color "#dc322f")
+ '(package-selected-packages
+   '(mongo jenkinsfile-mode rebox2 company-sourcekit flycheck-swift swift-mode flycheck-lilypond emacs-everywhere undo-fu edn))
  '(pdf-view-midnight-colors (cons "#839496" "#002b36"))
  '(pos-tip-background-color "#073642")
  '(pos-tip-foreground-color "#93a1a1")

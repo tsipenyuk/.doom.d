@@ -50,14 +50,46 @@
 ;(unpin! t)
 
 (package! solarized-theme)
-(package! ng2-mode)
-(package! edit-server)
 
-(package! dash)
-(package! dash-functional)
-(package! ejira :recipe
-  (:host github
-   :repo "nyyManni/ejira"
-   :files ("*.el" "*.el")))
+(package! restclient)
+(package! prettier-js)
+(package! prettier-rc)
+(package! emacs-everywhere)
+(package! rebox2)
+(package! tide)
+(package! all-the-icons)
 
-(package! edn)
+;; (package! ng2-mode)
+;; (package! vue-mode)
+;; (package! edit-server)
+
+;; (package! js-import)
+
+;; (package! dash)
+;; (package! dash-functional)
+;; (package! ejira :recipe
+;;   (:host github
+;;    :repo "nyyManni/ejira"
+;;    :files ("*.el" "*.el")))
+
+;; (package! edn)
+;; (package! ox-reveal)
+;; (package! undo-fu)
+
+;; (package! lilypond)
+;; (package! rebox2)
+
+;; (package! openai
+;;  :recipe (:host github :repo "emacs-openai/openai"))
+
+;; (package! chatgpt
+;;  :recipe (:host github :repo "emacs-openai/chatgpt"))
+
+
+;; (package! eaf
+;;   :recipe (:host github :repo "emacs-eaf/emacs-application-framework"
+;;            :files ("~/.emacs.d/site-lisp/emacs-application-framework/eaf.el")))
+
+;; (package! eaf-browser
+;;   :recipe (:host github :repo "emacs-eaf/eaf-browser"
+;;            :files ("~/.emacs.d/site-lisp/emacs-application-framework/app/browser/eaf-browser.el")))
