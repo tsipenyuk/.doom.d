@@ -519,7 +519,7 @@
   (interactive)
   (let ((word (get-word-at-point)))
     (if (not (string= word ""))
-        (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|function\\|const\\)\\s+" word)))
+        (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|async\\s+function\\|function\\|enum\\|const\\)\\s+" word)))
           (search-project-with-query search-query))
       (message "No word at point."))))
 
@@ -566,3 +566,13 @@
       (cons '("\\.ly$" . LilyPond-mode) auto-mode-alist))
 
 (add-hook 'LilyPond-mode-hook (lambda () (turn-on-font-lock)))
+
+(use-package! reformatter
+  :config
+  (reformatter-define shfmt
+    :program "shfmt"
+    :args `("-i" "2" "-ci" "-bn" ,@(when buffer-file-name
+                                     (list "-filename" buffer-file-name)))
+    :lighter " ShFmt"))
+
+(add-hook! 'sh-mode-hook #'shfmt-on-save-mode)

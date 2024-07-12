@@ -34,11 +34,12 @@
  '(jdee-db-spec-breakpoint-face-colors (cons "#073642" "#56697A"))
  '(js-indent-level 2)
  '(lsp-ui-doc-border "#93a1a1")
+ '(magit-todos-insert-after '(bottom) nil nil "Changed by setter of obsolete option `magit-todos-insert-at'")
  '(nrepl-message-colors
    '("#dc322f" "#cb4b16" "#b58900" "#5b7300" "#b3c34d" "#0061a8" "#2aa198" "#d33682" "#6c71c4"))
  '(objed-cursor-color "#dc322f")
  '(package-selected-packages
-   '(mongo jenkinsfile-mode rebox2 company-sourcekit flycheck-swift swift-mode flycheck-lilypond emacs-everywhere undo-fu edn))
+   '(reformatter mongo jenkinsfile-mode rebox2 company-sourcekit flycheck-swift swift-mode flycheck-lilypond emacs-everywhere undo-fu edn))
  '(pdf-view-midnight-colors (cons "#839496" "#002b36"))
  '(pos-tip-background-color "#073642")
  '(pos-tip-foreground-color "#93a1a1")

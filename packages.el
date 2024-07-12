@@ -58,6 +58,7 @@
 (package! rebox2)
 (package! tide)
 (package! all-the-icons)
+(package! reformatter)
 
 ;; (package! ng2-mode)
 ;; (package! vue-mode)
