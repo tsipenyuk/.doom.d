@@ -1,310 +1,198 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; Place your private configuration here! Remember, you do not need to run 'doom
-;; sync' after modifying this file!
-
-
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets.
+;; Personal Information
 (setq user-full-name "Arseniy Tsipenyuk"
       user-mail-address "arseniy.tsipenyuk@gmail.com")
 
-;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
-;; are the three important ones:
-;;
-;; + `doom-font'
-;; + `doom-variable-pitch-font'
-;; + `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;;
-;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
-;; font string. You generally only need these two:
-;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
-;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
+;; UI Configuration
+(setq doom-theme 'doom-solarized-light
+      doom-font (font-spec :family "Fira Code" :size 19)
+      display-line-numbers-type t)
 
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-solarized-light)
-(setq doom-font (font-spec :family "Fira Code" :size 19))
-
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Dropbox/org/")
-(add-to-list 'org-agenda-files "/Users/user/Dropbox/org/roam/20241004201720-pa_sports.org")
-
-;; disable tool-bar
-;; https://discourse.doomemacs.org/t/how-to-have-tool-bar-mode-0-apply-at-startup-to-avoid-large-title-bar-on-macos-sonoma-when-using-railwaycat-homebrew-emacsmacport/4222
+;; Disable toolbar on startup (for macOS Sonoma)
 (add-hook 'doom-after-init-hook (lambda () (tool-bar-mode 1) (tool-bar-mode 0)))
 
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+;; Org Configuration
+(setq org-directory "~/Dropbox/org/"
+      org-roam-directory "~/Dropbox/org/roam/"
+      org-agenda-files (list org-directory org-roam-directory))
 
-
-;; Here are some additional functions/macros that could help you configure Doom:
-;;
-;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
-;; - `add-load-path!' for adding directories to the `load-path', relative to
-;;   this file. Emacs searches the `load-path' when you load packages with
-;;   `require' or `use-package'.
-;; - `map!' for binding new keys
-;;
-;; To get information about any of these functions/macros, move the cursor over
-;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
-;; This will open documentation for it, including demos of how they are used.
-;;
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
-
-(setq kill-whole-line t)
+;; Global Settings
+(setq kill-whole-line t
+      confirm-kill-emacs nil)
 (global-subword-mode 1)
 (which-key-mode)
 
+;; Custom Key Translations
 (keyboard-translate ?\C-t ?\C-x)
 (keyboard-translate ?\C-x ?\C-t)
-;; (keyboard-translate ?\" ?\')
-;; (keyboard-translate ?\' ?\")
 (keyboard-translate ?\: ?\;)
 (keyboard-translate ?\; ?\:)
 
-(after! org
-  (setq org-reveal-root "file:///Users/user/git/reveal.js")
-  (setq org-reveal-custom-css
-        "section.reveal section.slide .title { display: none; }")
-  (setq org-reveal-title-slide nil)
-  (setq org-reveal-toc-title "git: einige Features und Best Practices")
-  (setq org-roam-directory "~/Dropbox/org/roam/")
-  (setq frg-roam-index-file "~/Dropbox/org/roam/index.org"))
-
+;; JSON Configuration
 (setq json-reformat:indent-width 2)
-(setq-default indent-tabs-mode nil)
-(setq-default tab-width 2)
-(setq standard-indent 2)
+(setq-default indent-tabs-mode nil
+              tab-width 2
+              standard-indent 2)
 
-(setq org-log-done 'time)
+;; Org-related Configuration
+(after! org
+  (setq org-reveal-root "file:///Users/user/git/reveal.js"
+        org-reveal-custom-css "section.reveal section.slide .title { display: none; }"
+        org-reveal-title-slide nil
+        org-reveal-toc-title "git: einige Features und Best Practices"
+        org-log-done 'time))
 
+;; Custom Keybindings
 (map! :leader
-      :desc "recursive grep"
-      "!" #'rgrep)
-
-(map! :leader
-      :desc "swap buffers left"
+      "!" #'rgrep
       "w z" #'windmove-swap-states-left
-      "w Z" #'windmove-swap-states-right)
+      "w Z" #'windmove-swap-states-right
+      ";" #'async-shell-command
+      "f t" #'prettier-js
+      "f o" #'find-file-other-window
+      "w a" #'other-frame
+      "o s" #'sql-postgres
+      "b f" #'arts/format-buffer-and-save
+      "f y" #'arts/copy-file-contents
+      "f p" #'arts/paste-file-contents)
 
 (map! :leader
-      :desc "async shell"
-      ";" #'async-shell-command)
+      (:prefix ("l" . "line")
+       "f" #'arts/fill-to-end
+       "l" #'avy-goto-line
+       "n" #'goto-line
+       "r" #'string-rectangle
+       "s" #'sort-lines))
 
 (map! :leader
-      :desc "apply prettier to file"
-      "f t" #'prettier-js)
+      (:prefix ("m" . "misc")
+       "m k" #'with-editor-cancel
+       "m c" #'with-editor-finish
+       "o o" #'org-open-at-point
+       "o p" #'org-set-property))
 
 (map! :leader
-      :desc "Line navigation and manipulation"
-      "l f" #'fill-to-end
-      "l l" #'avy-goto-line
-      "l n" #'goto-line
-      "l r" #'string-rectangle
-      "l s" #'sort-lines)
+      (:prefix ("e" . "ejira/execute")
+       "u" #'vterm-send-up
+       "k" #'term-interrupt-subjob
+       "r" #'ejira-update-my-projects
+       "p" #'ejira-push-item-under-point
+       "e" #'eglot
+       "c" #'eglot-code-actions))
 
 (map! :leader
-      :desc "magit & org"
-      "m m k" #'with-editor-cancel
-      "m m c" #'with-editor-finish
-      "m o o" #'org-open-at-point
-      "m o p" #'org-set-property)
+      (:prefix ("r" . "run")
+       "z d" (cmd! (async-shell-command "yarn run e2e-db"))
+       "z a 1" (cmd! (async-shell-command "nvm use && ng serve --port 4201"))
+       "z a 2" (cmd! (async-shell-command "nvm use && ng serve --port 4202"))
+       "z e 2" (cmd! (async-shell-command "yarn run electron-4202"))
+       "z p" (cmd! (async-shell-command "yarn run e2e-playwright"))))
 
-(map! :leader
-      :desc "file management"
-      ")" #'import-relative-file-name-and-insert
-      "+" #'search-project-for-export-word-at-point
-      "c p r" #'copy-relative-file-name-to-clipboard
-      "c p a" #'copy-file-name-to-clipboard)
+;; Custom Functions
+(defun arts/close-all-buffers ()
+  "Kill all buffers without regard for their origin."
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
 
+(defun arts/run-bun-test ()
+  "Run 'bun test <filename>' from the folder of the current file."
+  (interactive)
+  (when-let ((filename (buffer-file-name)))
+    (let* ((default-directory (file-name-directory filename))
+           (command (concat "bun test " (file-name-nondirectory filename))))
+      (shell-command command))))
 
-(map! :leader
-      :desc "ejira / execute"
-      "e u" #'vterm-send-up
-      "e k" #'term-interrupt-subjob
-      "e r" #'ejira-update-my-projects
-      "e p" #'ejira-push-item-under-point
-      "e e" #'eglot
-      "e c" #'eglot-code-actions
-      )
+(defun arts/format-buffer-and-save ()
+  "Format the current buffer using prettier-js and save the buffer."
+  (interactive)
+  (prettier-js)
+  (save-buffer))
 
-(map! :leader
-      "f o" #'find-file-other-window)
+(defun arts/format-json-buffer-and-save ()
+  "Format the current JSON buffer and save it."
+  (interactive)
+  (json-pretty-print-buffer)
+  (save-buffer))
 
-(map! :leader
-      "w a" #'other-frame)
+(defun arts/get-word-at-point ()
+  "Return the JavaScript word at point."
+  (let ((word-chars "a-zA-Z0-9_$")
+        (start (point))
+        (end (point)))
+    (save-excursion
+      (while (and (not (bobp))
+                  (string-match-p (concat "[" word-chars "]")
+                                  (char-to-string (char-before))))
+        (backward-char)
+        (setq start (point)))
+      (goto-char end)
+      (while (and (not (eobp))
+                  (string-match-p (concat "[" word-chars "]")
+                                  (char-to-string (char-after))))
+        (forward-char)
+        (setq end (point))))
+    (buffer-substring-no-properties start end)))
 
-(map! :leader
-      :desc "Run e2e-db"
-      "r z d" #'(lambda () (interactive) (async-shell-command "yarn run e2e-db"))
-      :desc "Run ng serve --port 4201"
-      "r z a 1" #'(lambda () (interactive) (async-shell-command "nvm use && ng serve --port 4201"))
-      :desc "Run ng serve --port 4202"
-      "r z a 2" #'(lambda () (interactive) (async-shell-command "nvm use && ng serve --port 4202"))
-      :desc "Run electron-4202"
-      "r z e 2" #'(lambda () (interactive) (async-shell-command "yarn run electron-4202"))
-      :desc "Run e2e-playwright"
-      "r z p" #'(lambda () (interactive) (async-shell-command "yarn run e2e-playwright"))
-      )
+(defun arts/search-project-for-export-word-at-point ()
+  "Search the project for 'export .* <word-at-point>' and open the buffer with the first match."
+  (interactive)
+  (if-let ((word (arts/get-word-at-point)))
+      (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|async\\s+function\\|function\\|enum\\|const\\)\\s+" word)))
+        (cond
+         ((modulep! :completion ivy)
+          (counsel-rg search-query (projectile-project-root)))
+         ((modulep! :completion helm)
+          (helm-projectile-rg search-query))
+         ((modulep! :completion vertico)
+          (consult-ripgrep (projectile-project-root) search-query))
+         (t
+          (projectile-ripgrep search-query))))
+    (message "No word at point.")))
 
-(map! :leader
-      "o s" #'sql-postgres)
+(defun arts/import-relative-file-name-and-insert ()
+  "Insert an import statement for the word at point from the relative path of the current file."
+  (interactive)
+  (let* ((current-buffer-filename (buffer-file-name))
+         (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
+                                  (buffer-file-name)))
+         (relative-path (when (and current-buffer-filename other-buffer-filename)
+                          (file-relative-name
+                           (file-name-sans-extension current-buffer-filename)
+                           (file-name-directory other-buffer-filename))))
+         (word-at-point (arts/get-word-at-point)))
+    (if relative-path
+        (with-current-buffer (other-buffer (current-buffer) 1)
+          (save-excursion
+            (goto-char (point-min))
+            (insert (format "import { %s } from './%s'\n" word-at-point relative-path)))
+          (message "Inserted relative import '%s' with word '%s'." relative-path word-at-point))
+      (message "Could not determine the relative path."))))
 
-;; (map! :leader
-;;       :desc "toggle / tide"
-;;       (:n "t r" nil) ; Unbind "t r f"
-;;       "t j t" #'tide-jsdoc-template
-;;       "t m r" #'read-only-mode
-;;       "t o i" #'tide-organize-imports
-;;       "t r f" #'tide-rename-file
-;;       "t r s" #'tide-rename-symbol
-;;       "t s s" #'tide-restart-server)
+(defun arts/copy-file-contents ()
+  "Copy the entire contents of the current buffer to the kill ring."
+  (interactive)
+  (kill-new (buffer-string))
+  (message "Copied entire file contents to clipboard"))
 
-;; mail ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(after! mu4e
-  (setq mu4e-maildir "~/.mail/Gmail")
-  (setq mu4e-drafts-folder "/[Gmail]/Drafts")
-  (setq mu4e-sent-folder   "/[Gmail]/Sent Mail")
-  (setq mu4e-trash-folder  "/[Gmail]/Trash")
-  (setq mu4e-refile-folder "/[Gmail]/All Mail")
-  (setq mu4e-get-mail-command "mbsync -a")
-  (setq mu4e-update-interval 300)
-  (setq mu4e-compose-signature "Arseniy Tsipenyuk"))
+(defun arts/paste-file-contents ()
+  "Clear the current buffer's contents and paste the contents from the clipboard."
+  (interactive)
+  (delete-region (point-min) (point-max))
+  (yank)
+  (message "Pasted clipboard contents into the current file"))
 
-(map!
- :map mu4e-headers-mode-map
- "j" 'mu4e-headers-next
- "k" 'mu4e-headers-prev
- "RET" 'mu4e-headers-view-message
- "m" 'mu4e-compose-new)
-
-(map!
- :map mu4e-view-mode-map
- "j" 'mu4e-view-headers-next
- "k" 'mu4e-view-headers-prev
- "q" 'mu4e~view-quit-buffer)
-
-;; mail end ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;(setq-hook! 'ng2-html-mode-hook +format-with 'prettier)
-(remove-hook 'after-init-hook 'savehist-mode)
-
-(add-hook 'js2-mode-hook 'prettier-js-mode)
-(add-hook 'typescript-mode-hook 'prettier-js-mode)
-;; (add-hook 'web-mode-hook 'prettier-js-mode)
-;; Remove hooks for automatic formatting on save
-(remove-hook 'js2-mode-hook 'prettier-js-mode)
-(remove-hook 'web-mode-hook 'prettier-js-mode)
-
-(setq prettier-js-args '(
-                         "--trailing-comma" "all"
-                         "--bracket-spacing" "true"
-                         "--tab-width" "2"
-                         "--semi" "false"
-                         "--single-quote" "true"
-                         ))
-
-(defun fill-to-end (char)
+(defun arts/fill-to-end (char)
+  "Fill to the end of the line with the given character."
   (interactive "cFill Character:")
   (save-excursion
     (end-of-line)
     (while (< (current-column) 80)
       (insert-char char))))
 
-(defun fill-short (char)
-  (interactive "cFill Character:")
-  (save-excursion
-    (end-of-line)
-    (while (< (current-column) 72)
-      (insert-char char))))
-
-;; Copy the current buffer file name
-(defun copy-file-name-to-clipboard ()
-  "Copy the current buffer file name to the clipboard."
-  (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (when filename
-      (kill-new filename)
-      (message "Copied buffer file name '%s' to the clipboard." filename))))
-
-
-(defun copy-relative-file-name-to-clipboard ()
-  "Copy the current buffer file name as a relative path to the file open in the other buffer to the clipboard, prepended with './'."
-  (interactive)
-  (let* ((current-buffer-filename (if (equal major-mode 'dired-mode)
-                                      default-directory
-                                    (buffer-file-name)))
-         (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
-                                  (if (equal major-mode 'dired-mode)
-                                      default-directory
-                                    (buffer-file-name))))
-         (relative-path (when (and current-buffer-filename other-buffer-filename)
-                          (concat "./" (file-relative-name current-buffer-filename (file-name-directory other-buffer-filename))))))
-    (if relative-path
-        (progn
-          (kill-new relative-path)
-          (message "Copied relative file name '%s' to the clipboard." relative-path))
-      (message "Could not determine the relative path."))))
-
-;; (defun import-relative-file-name-and-insert ()
-;;   "Inserts the current buffer file name as a relative path to the file open in the other buffer, prepended with 'import {  } from ' and appended with '.' at point."
-;;   (interactive)
-;;   (let* ((current-buffer-filename (if (equal major-mode 'dired-mode)
-;;                                       default-directory
-;;                                     (buffer-file-name)))
-;;          (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
-;;                                   (if (equal major-mode 'dired-mode)
-;;                                       default-directory
-;;                                     (buffer-file-name))))
-;;          (relative-path (when (and current-buffer-filename other-buffer-filename)
-;;                           (let ((raw-relative-path (file-relative-name current-buffer-filename (file-name-directory other-buffer-filename))))
-;;                             (if (string-suffix-p ".ts" raw-relative-path)
-;;                                 (substring raw-relative-path 0 -3) ; Strip '.ts'
-;;                               raw-relative-path)))))
-;;     (if relative-path
-;;         (progn
-;;           (with-current-buffer (other-buffer (current-buffer) 1)
-;;             (goto-char (point-min))
-;;             (insert (concat "import {  } from './" relative-path "'"))
-;;             (newline))
-;;           (message "Inserted relative import '%s'." relative-path))
-;;       (message "Could not determine the relative path."))))
-
-
-;; org-jira config
-;; (edit-server-start)
-
-(use-package! emacs-everywhere
-  :init
-  (setq emacs-everywhere-major-mode 'org-mode) ; Set your preferred major mode
-  :config
-  (add-hook 'emacs-everywhere-init-hooks 'evil-emacs-state)) ; Optional: Use Evil keybindings
-
-
-(after! org
-  (setq roam-org-directory "~/Dropbox/org/roam")
-  (add-to-list 'org-agenda-files roam-org-directory))
-
-;; setting postgres
-(setq sql-postgres-program "/usr/local/Cellar/postgresql@11/11.18_1/bin/psql")
-(setq sql-postgres-login-params
-      '((user "postgres")
-        (database "tomedo_db")
-        (server "localhost")))
-
-
-;; typescript config
+;; Mode-specific configurations
+(add-hook 'js2-mode-hook 'prettier-js-mode)
+(add-hook 'typescript-mode-hook 'prettier-js-mode)
 (add-hook 'typescript-mode-hook (lambda () (setq typescript-indent-level 2)))
 
 (after! typescript-mode
@@ -313,244 +201,27 @@
         :desc "Insert import statement" "ii" #'js/import
         :desc "Insert named import" "if" #'js/import-from))
 
-(after! typescript-mode
-  (add-hook 'typescript-mode-hook (lambda ()
-                                    ;; (set (make-local-variable 'rebox-style-loop) '(25 17 21))
-                                    ;; (set (make-local-variable 'rebox-min-fill-column) 40)
-                                    (set (make-local-variable 'rebox-comment-style) 'jsdoc)
-                                    (rebox-mode 1))))
-
-
-;; CUSTOM FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; close all buffers
-(defun close-all-buffers ()
-  "Kill all buffers without regard for their origin."
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-
-
-;; typescript config
-(add-hook 'typescript-mode-hook (lambda () (setq typescript-indent-level 2)))
-
-(after! typescript-mode
-  (map! :map typescript-mode-map
-        :localleader
-        :desc "Insert import statement" "ii" #'js/import
-        :desc "Insert named import" "if" #'js/import-from))
-
-
-;; CUSTOM FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; close all buffers
-(defun close-all-buffers ()
-  "Kill all buffers without regard for their origin."
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-
-
-;; typescript config
-(add-hook 'typescript-mode-hook (lambda () (setq typescript-indent-level 2)))
-
-(after! typescript-mode
-  (map! :map typescript-mode-map
-        :localleader
-        :desc "Insert import statement" "ii" #'js/import
-        :desc "Insert named import" "if" #'js/import-from))
-
-
-;; CUSTOM FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; close all buffers
-(defun close-all-buffers ()
-  "Kill all buffers without regard for their origin."
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-
-;; lilypond
-;; (use-package! lilypond
-;;   :load-path "~/.config/doom/local/lilypond/lilypond-mode"
-;;   :defer t
-;;   :mode ("\\.ly$" . LilyPond-mode)
-;;   :config
-;;   (setq lilypond-program "/usr/local/bin/lilypond"))
-
-;; (load! "local/lilypond/lilypond-mode")
-
-;; (defun my/lilypond-compile-and-preview ()
-;;  "Compile and preview the first .ly file found in the current folder."
-;;  (interactive)
-;;  (let* ((ly-files (directory-files default-directory t ".*\\.ly$"))
-;;         (ly-file (car ly-files))
-;;         (pdf-file (concat (file-name-sans-extension ly-file) ".pdf")))
-;;    (if (not ly-file)
-;;        (message "No .ly files found in the current folder.")
-;;      (save-buffer)
-;;      (shell-command (format "lilypond %s" ly-file))
-;;      (+evil/window-move-right)
-;;      (find-file pdf-file)
-;;      (+evil/window-move-left)
-;;      (kill-current-buffer)
-;;      )))
-
-(map! :leader
-      (:prefix "l"
-       :desc "LilyPond Compile and Preview" "c" #'my/lilypond-compile-and-preview))
-
-
-(defun arts/run-bun-test ()
-  "Run 'bun test <filename>' from the folder of the current file."
-  (interactive)
-  (let ((filename (buffer-file-name)))
-    (when filename
-      (let* ((default-directory (file-name-directory filename))
-             (command (concat "bun test " (file-name-nondirectory filename))))
-        (shell-command command)))))
-
-(map! :leader
-      (:prefix "j"
-       :desc "js/ts" "t" #'arts/run-bun-test))
-
-(defun arts/format-buffer-and-save ()
-  "Format the current buffer using +format/buffer and save the buffer."
-  (interactive)
-  (prettier-js)
-  (save-buffer))
-
-(map! :leader
-      :desc "Format buffer and save"
-      "b f" #'arts/format-buffer-and-save)
-
-;; json mode
+;; JSON mode configuration
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
-(defun arts/format-json-buffer-and-save ()
-  "Format the current buffer using +format/buffer and save the buffer."
-  (interactive)
-  (json-pretty-print-buffer)
-  (save-buffer))
-
-;; Bind the function to a key only in json-mode
 (add-hook 'json-mode-hook
           (lambda ()
             (map! :leader
                   :desc "Format buffer and save"
                   "b f" #'arts/format-json-buffer-and-save)))
 
+;; LilyPond configuration
+(use-package! lilypond-mode
+  :mode "\\.ly\\'"
+  :config
+  (setq LilyPond-pdf-command "open")
+  (map! :map LilyPond-mode-map
+        :localleader
+        :desc "Compile" "c" #'LilyPond-command-compile
+        :desc "View" "v" #'LilyPond-command-view
+        :desc "Play MIDI" "p" #'LilyPond-play-midi
+        :desc "Open PDF" "o" #'LilyPond-open-pdf-in-new-tab))
 
-;; (defun setup-tide-mode ()
-;;   (interactive)
-;;   (tide-setup)
-;;   (flycheck-mode +1)
-;;   (setq flycheck-check-syntax-automatically '(save mode-enabled))
-;;   (eldoc-mode +1)
-;;   (tide-hl-identifier-mode +1)
-;;   ;; company is an optional dependency. You have to
-;;   ;; install it separately via package-install
-;;   ;; `M-x package-install [ret] company`
-;;   (company-mode +1))
-
-;; ;; aligns annotation to the right hand side
-;; (setq company-tooltip-align-annotations t)
-
-;; ;; formats the buffer before saving
-;; (add-hook 'before-save-hook 'tide-format-before-save)
-
-;; ;; if you use typescript-mode
-;; (add-hook 'typescript-mode-hook #'setup-tide-mode)
-;; ;; if you use treesitter based typescript-ts-mode (emacs 29+)
-;; (add-hook 'typescript-ts-mode-hook #'setup-tide-mode)
-
-;; do not ask for confirmation when quitting
-(setq confirm-kill-emacs nil)
-
-;; ts-import
-
-(defun get-word-at-point ()
-  "Return the JavaScript word at point."
-  (let ((word-chars "a-zA-Z0-9_$")
-        (start (point))
-        (end (point)))
-    ;; Move the start position to the beginning of the word
-    (while (and (not (bobp))
-                (string-match-p (concat "[" word-chars "]")
-                                (char-to-string (char-before))))
-      (backward-char)
-      (setq start (point)))
-    ;; Move the end position to the end of the word
-    (goto-char end)
-    (while (and (not (eobp))
-                (string-match-p (concat "[" word-chars "]")
-                                (char-to-string (char-after))))
-      (forward-char)
-      (setq end (point)))
-    ;; Return the word at point
-    (buffer-substring-no-properties start end)))
-
-(defun search-project-with-query (query)
-  "Search the project for the given QUERY."
-  (let* ((projectile-project-root nil)
-         (disabled-command-function nil)
-         (default-directory (projectile-project-root)))
-    (cond
-     ((modulep! :completion ivy)
-      (counsel-rg query (projectile-project-root)))
-     ((modulep! :completion helm)
-      (helm-projectile-rg query))
-     ((modulep! :completion vertico)
-      (consult-ripgrep (projectile-project-root) query))
-     (t
-      (projectile-ripgrep query)))))
-
-(defun search-project-for-export-word-at-point ()
-  "Search the project for 'export .* <word-at-point>' and open the buffer with the first match."
-  (interactive)
-  (let ((word (get-word-at-point)))
-    (if (not (string= word ""))
-        (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|async\\s+function\\|function\\|enum\\|const\\)\\s+" word)))
-          (search-project-with-query search-query))
-      (message "No word at point."))))
-
-(defun import-relative-file-name-and-insert ()
-  "Inserts the current buffer file name as a relative path to the file open in the other buffer, prepended with 'import { <word-at-point> } from ' and appended with '.' at point."
-  (interactive)
-  (let* ((current-buffer-filename (if (equal major-mode 'dired-mode)
-                                      default-directory
-                                    (buffer-file-name)))
-         (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
-                                  (if (equal major-mode 'dired-mode)
-                                      default-directory
-                                    (buffer-file-name))))
-         (relative-path (when (and current-buffer-filename other-buffer-filename)
-                          (let ((raw-relative-path (file-relative-name current-buffer-filename (file-name-directory other-buffer-filename))))
-                            (if (string-suffix-p ".ts" raw-relative-path)
-                                (substring raw-relative-path 0 -3) ; Strip '.ts'
-                              raw-relative-path))))
-         (word-at-point (get-word-at-point)))
-    (if relative-path
-        (progn
-          (with-current-buffer (other-buffer (current-buffer) 1)
-            (goto-char (point-min))
-            (insert (concat "import { " word-at-point " } from './" relative-path "'"))
-            (newline))
-          (other-buffer (current-buffer))
-          (message "Inserted relative import '%s' with word '%s'." relative-path word-at-point))
-      (message "Could not determine the relative path."))))
-
-(defun copy-word-at-point ()
-  "Copy the JavaScript word at point."
-  (interactive)
-  (let ((word (get-word-at-point)))
-    (kill-new word)
-    (message "Copied: %s" word)))
-
-
-
-;; lilypond
-;; (setq load-path (append (list (expand-file-name "~/.emacs.d/.local/straight/repos/lilypond/elisp")) load-path))
-(load (expand-file-name "~/.emacs.d/.local/straight/repos/lilypond/elisp/lilypond-mode"))
-(autoload 'LilyPond-mode "lilypond-mode")
-(setq auto-mode-alist
-      (cons '("\\.ly$" . LilyPond-mode) auto-mode-alist))
-
-(add-hook 'LilyPond-mode-hook (lambda () (turn-on-font-lock)))
-
+;; Shell script formatting
 (use-package! reformatter
   :config
   (reformatter-define shfmt
@@ -559,8 +230,9 @@
                                      (list "-filename" buffer-file-name)))
     :lighter " ShFmt"))
 
-(add-hook! 'sh-mode-hook #'shfmt-on-save-mode)
+(add-hook 'sh-mode-hook #'shfmt-on-save-mode)
 
+;; Jenkinsfile and Groovy configuration
 (use-package! jenkinsfile-mode
   :mode (("Jenkinsfile\\'" . jenkinsfile-mode)
          ("\\.jenkinsfile\\'" . jenkinsfile-mode))
@@ -571,7 +243,6 @@
   :config
   (setq groovy-indent-offset 2))
 
-;; If you want to use format-all for Jenkinsfiles
 (after! format-all
   (set-formatter! 'groovy-format
     '("groovy-format" "-c" "import java.nio.file.*; def content = new String(Files.readAllBytes(Paths.get(\"%S\")), \"UTF-8\"); def formatted = groovy.ui.OutputTransforms.format(content); print formatted;")
@@ -584,139 +255,47 @@
 (add-hook! '(groovy-mode-hook jenkins-mode-hook)
   (add-hook 'before-save-hook #'format-all-buffer nil t))
 
+;; Spell checking
 (setq ispell-dictionary "en_US")
 
-(defun run-bun-test-on-current-file ()
-  "Run 'bun test' on the current buffer's file."
-  (interactive)
-  (let* ((file-name (buffer-file-name))
-         (default-directory (projectile-project-root))
-         (command (format "bun test %s" (file-relative-name file-name default-directory))))
-    (compile command)))
-
-(map! :leader
-      (:prefix ("t" . "test")
-       :desc "Run bun test on current file" "b" #'run-bun-test-on-current-file))
-
-;; lilypond
-(map! :leader
-      :desc "LilyPond operations"
-      "l c" #'LilyPond-command-compile
-      "l v" #'LilyPond-command-view
-      "l m" #'LilyPond-command-formatmidi
-      "l o" #'LilyPond-open-pdf-in-new-tab)
-
-;; Custom functions
-
-(defun LilyPond-command-compile ()
-  "Compile the current LilyPond file."
-  (interactive)
-  (when (eq major-mode 'LilyPond-mode)
-    (let ((lilypond-file (buffer-file-name)))
-      (compile (format "lilypond %s" lilypond-file)))))
-
-(defun LilyPond-open-pdf ()
-  "Open the PDF of the current LilyPond file in Emacs."
-  (interactive)
-  (when (eq major-mode 'LilyPond-mode)
-    (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
-      (if (file-exists-p pdf-file)
-          (find-file pdf-file)
-        (message "PDF file not found. Compile the LilyPond file first.")))))
-
-(defun LilyPond-play-midi ()
-  "Play the MIDI file of the current LilyPond file."
-  (interactive)
-  (when (eq major-mode 'LilyPond-mode)
-    (let ((midi-file (concat (file-name-sans-extension (buffer-file-name)) ".midi")))
-      (if (file-exists-p midi-file)
-          (start-process "midi-player" nil "timidity" midi-file)
-        (message "MIDI file not found. Compile the LilyPond file first.")))))
-
-(defun LilyPond-open-pdf-in-new-tab ()
-  "Open the PDF of the current LilyPond file in a new Emacs window."
-  (interactive)
-  (when (eq major-mode 'LilyPond-mode)
-    (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
-      (if (file-exists-p pdf-file)
-          (find-file-other-window pdf-file)
-        (message "PDF file not found. Compile the LilyPond file first.")))))
-
-(defun LilyPond-compile-and-view ()
-  "Compile the current LilyPond file and open the resulting PDF in another buffer."
-  (interactive)
-  (when (eq major-mode 'LilyPond-mode)
-    (let* ((lilypond-file (buffer-file-name))
-           (pdf-file (concat (file-name-sans-extension lilypond-file) ".pdf"))
-           (compilation-buffer-name "*LilyPond Compilation*"))
-      (compile (format "lilypond %s" lilypond-file) t)
-      (with-current-buffer compilation-buffer-name
-        (set (make-local-variable 'compilation-finish-functions)
-             (lambda (buffer msg)
-               (when (string-match "finished" msg)
-                 (if (file-exists-p pdf-file)
-                     (find-file-other-window pdf-file)
-                   (message "PDF file not generated. Check compilation output for errors."))))))
-      (display-buffer compilation-buffer-name))))
-
-(defun copy-file-contents ()
-  "Copy the entire contents of the current buffer to the kill ring."
-  (interactive)
-  (kill-new (buffer-string))
-  (message "Copied entire file contents to clipboard"))
-
-(map! :leader
-      :desc "Copy file contents"
-      "f y" #'copy-file-contents)
-
-;; (use-package! eglot
-;;   :hook ((typescript-mode . eglot-ensure)
-;;          (angular-mode . eglot-ensure))
-;;   :config
-;;   (add-to-list 'eglot-server-programs
-;;                `((typescript-mode angular-mode)
-;;                  . ("typescript-language-server" "--stdio"))))
-
-;; ;; If you need to specify the TypeScript SDK path
-;; (setq-default eglot-workspace-configuration
-;;               '((:typescript . (:tsdk "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript/lib"))))
-
-;; ;; For Angular-specific configuration
-;; (with-eval-after-load 'eglot
-;;   (add-to-list 'eglot-server-programs
-;;                `(angular-mode . ("ngserver" "--stdio" "--tsProbeLocations" "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript" "--ngProbeLocations" "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/@angular/language-service"))))
-
-;; (defun my/eglot-set-typescript-server-args ()
-;;   (when (and buffer-file-name (string-match-p "\\.spec\\.ts$" buffer-file-name))
-;;     (setq-local eglot-server-programs
-;;                 `((typescript-mode . ("typescript-language-server" "--stdio"
-;;                                       "--tsserver-path"
-;;                                       ,(expand-file-name "tsconfig.spec.json"
-;;                                                          (projectile-project-root)))))))
-
-;; (add-hook 'typescript-mode-hook #'my/eglot-set-typescript-server-args)
-;; (add-hook 'angular-mode-hook #'my/eglot-set-typescript-server-args)
-
-;; (map! :leader
-;;       :desc "Find references"
-;;       "c r" #'eglot-find-references
-;;       :desc "Rename symbol"
-;;       "c R" #'eglot-rename
-;;       :desc "Format buffer"
-;;       "c f" #'eglot-format-buffer)
-
-(defun paste-file-contents ()
-  "Clear the current buffer's contents and paste the contents from the clipboard."
-  (interactive)
-  (delete-region (point-min) (point-max))
-  (yank)
-  (message "Pasted clipboard contents into the current file"))
-
-(map! :leader
-      :desc "Paste file contents"
-      "f p" #'paste-file-contents)
-
+;; Key frequency tracking
 (use-package! keyfreq
   :config
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
+
+;; Mail configuration
+(after! mu4e
+  (setq mu4e-maildir "~/.mail/Gmail"
+        mu4e-drafts-folder "/[Gmail]/Drafts"
+        mu4e-sent-folder   "/[Gmail]/Sent Mail"
+        mu4e-trash-folder  "/[Gmail]/Trash"
+        mu4e-refile-folder "/[Gmail]/All Mail"
+        mu4e-get-mail-command "mbsync -a"
+        mu4e-update-interval 300
+        mu4e-compose-signature "Arseniy Tsipenyuk"))
+
+(map! :map mu4e-headers-mode-map
+      "j" #'mu4e-headers-next
+      "k" #'mu4e-headers-prev
+      "RET" #'mu4e-headers-view-message
+      "m" #'mu4e-compose-new)
+
+(map! :map mu4e-view-mode-map
+      "j" #'mu4e-view-headers-next
+      "k" #'mu4e-view-headers-prev
+      "q" #'mu4e~view-quit-buffer)
+
+;; PostgreSQL configuration
+(setq sql-postgres-program "/usr/local/Cellar/postgresql@11/11.18_1/bin/psql"
+      sql-postgres-login-params
+      '((user "postgres")
+        (database "tomedo_db")
+        (server "localhost")))
+
+;; Prettier configuration
+(setq prettier-js-args '("--trailing-comma" "all"
+                         "--bracket-spacing" "true"
+                         "--tab-width" "2"
+                         "--semi" "false"
+                         "--single-quote" "true"))
