@@ -31,6 +31,7 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/Dropbox/org/")
+(add-to-list 'org-agenda-files "/Users/user/Dropbox/org/roam/20241004201720-pa_sports.org")
 
 ;; disable tool-bar
 ;; https://discourse.doomemacs.org/t/how-to-have-tool-bar-mode-0-apply-at-startup-to-avoid-large-title-bar-on-macos-sonoma-when-using-railwaycat-homebrew-emacsmacport/4222
@@ -157,15 +158,15 @@
 (map! :leader
       "o s" #'sql-postgres)
 
-(map! :leader
-      :desc "toggle / tide"
-      (:n "t r" nil) ; Unbind "t r f"
-      "t j t" #'tide-jsdoc-template
-      "t m r" #'read-only-mode
-      "t o i" #'tide-organize-imports
-      "t r f" #'tide-rename-file
-      "t r s" #'tide-rename-symbol
-      "t s s" #'tide-restart-server)
+;; (map! :leader
+;;       :desc "toggle / tide"
+;;       (:n "t r" nil) ; Unbind "t r f"
+;;       "t j t" #'tide-jsdoc-template
+;;       "t m r" #'read-only-mode
+;;       "t o i" #'tide-organize-imports
+;;       "t r f" #'tide-rename-file
+;;       "t r s" #'tide-rename-symbol
+;;       "t s s" #'tide-restart-server)
 
 ;; mail ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (after! mu4e
@@ -301,23 +302,6 @@
       '((user "postgres")
         (database "tomedo_db")
         (server "localhost")))
-
-;; prog lang config ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; lsp performance
-;; (setq gc-cons-threshold 100000000)
-;; (setq read-process-output-max (* 1024 1024)) ;; 1mb
-;; (setq lsp-idle-delay 0.500)
-
-;; Enable LSP for TypeScript and HTML
-;; (after! lsp
-;;   (lsp-register-client
-;;    (make-lsp-client :new-connection (lsp-stdio-connection '("typescript-language-server" "--stdio"))
-;;                     :major-modes '(typescript-mode web-mode) ;; Add other modes as needed
-;;                     :server-id 'tsserver)))
-
-;; Enable LSP
-(add-hook 'typescript-mode-hook #'lsp)
-;; (add-hook 'web-mode-hook #'lsp)
 
 
 ;; typescript config
@@ -576,3 +560,163 @@
     :lighter " ShFmt"))
 
 (add-hook! 'sh-mode-hook #'shfmt-on-save-mode)
+
+(use-package! jenkinsfile-mode
+  :mode (("Jenkinsfile\\'" . jenkinsfile-mode)
+         ("\\.jenkinsfile\\'" . jenkinsfile-mode))
+  :config
+  (setq jenkinsfile-mode-groovy-indent-offset 2))
+
+(use-package! groovy-mode
+  :config
+  (setq groovy-indent-offset 2))
+
+;; If you want to use format-all for Jenkinsfiles
+(after! format-all
+  (set-formatter! 'groovy-format
+    '("groovy-format" "-c" "import java.nio.file.*; def content = new String(Files.readAllBytes(Paths.get(\"%S\")), \"UTF-8\"); def formatted = groovy.ui.OutputTransforms.format(content); print formatted;")
+    :modes '(groovy-mode jenkinsfile-mode)))
+
+(set-formatter! 'jenkinsfile-formatter
+  '("jenkinsfile-formatter" "--stdin")
+  :modes '(groovy-mode jenkins-mode))
+
+(add-hook! '(groovy-mode-hook jenkins-mode-hook)
+  (add-hook 'before-save-hook #'format-all-buffer nil t))
+
+(setq ispell-dictionary "en_US")
+
+(defun run-bun-test-on-current-file ()
+  "Run 'bun test' on the current buffer's file."
+  (interactive)
+  (let* ((file-name (buffer-file-name))
+         (default-directory (projectile-project-root))
+         (command (format "bun test %s" (file-relative-name file-name default-directory))))
+    (compile command)))
+
+(map! :leader
+      (:prefix ("t" . "test")
+       :desc "Run bun test on current file" "b" #'run-bun-test-on-current-file))
+
+;; lilypond
+(map! :leader
+      :desc "LilyPond operations"
+      "l c" #'LilyPond-command-compile
+      "l v" #'LilyPond-command-view
+      "l m" #'LilyPond-command-formatmidi
+      "l o" #'LilyPond-open-pdf-in-new-tab)
+
+;; Custom functions
+
+(defun LilyPond-command-compile ()
+  "Compile the current LilyPond file."
+  (interactive)
+  (when (eq major-mode 'LilyPond-mode)
+    (let ((lilypond-file (buffer-file-name)))
+      (compile (format "lilypond %s" lilypond-file)))))
+
+(defun LilyPond-open-pdf ()
+  "Open the PDF of the current LilyPond file in Emacs."
+  (interactive)
+  (when (eq major-mode 'LilyPond-mode)
+    (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
+      (if (file-exists-p pdf-file)
+          (find-file pdf-file)
+        (message "PDF file not found. Compile the LilyPond file first.")))))
+
+(defun LilyPond-play-midi ()
+  "Play the MIDI file of the current LilyPond file."
+  (interactive)
+  (when (eq major-mode 'LilyPond-mode)
+    (let ((midi-file (concat (file-name-sans-extension (buffer-file-name)) ".midi")))
+      (if (file-exists-p midi-file)
+          (start-process "midi-player" nil "timidity" midi-file)
+        (message "MIDI file not found. Compile the LilyPond file first.")))))
+
+(defun LilyPond-open-pdf-in-new-tab ()
+  "Open the PDF of the current LilyPond file in a new Emacs window."
+  (interactive)
+  (when (eq major-mode 'LilyPond-mode)
+    (let ((pdf-file (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
+      (if (file-exists-p pdf-file)
+          (find-file-other-window pdf-file)
+        (message "PDF file not found. Compile the LilyPond file first.")))))
+
+(defun LilyPond-compile-and-view ()
+  "Compile the current LilyPond file and open the resulting PDF in another buffer."
+  (interactive)
+  (when (eq major-mode 'LilyPond-mode)
+    (let* ((lilypond-file (buffer-file-name))
+           (pdf-file (concat (file-name-sans-extension lilypond-file) ".pdf"))
+           (compilation-buffer-name "*LilyPond Compilation*"))
+      (compile (format "lilypond %s" lilypond-file) t)
+      (with-current-buffer compilation-buffer-name
+        (set (make-local-variable 'compilation-finish-functions)
+             (lambda (buffer msg)
+               (when (string-match "finished" msg)
+                 (if (file-exists-p pdf-file)
+                     (find-file-other-window pdf-file)
+                   (message "PDF file not generated. Check compilation output for errors."))))))
+      (display-buffer compilation-buffer-name))))
+
+(defun copy-file-contents ()
+  "Copy the entire contents of the current buffer to the kill ring."
+  (interactive)
+  (kill-new (buffer-string))
+  (message "Copied entire file contents to clipboard"))
+
+(map! :leader
+      :desc "Copy file contents"
+      "f y" #'copy-file-contents)
+
+;; (use-package! eglot
+;;   :hook ((typescript-mode . eglot-ensure)
+;;          (angular-mode . eglot-ensure))
+;;   :config
+;;   (add-to-list 'eglot-server-programs
+;;                `((typescript-mode angular-mode)
+;;                  . ("typescript-language-server" "--stdio"))))
+
+;; ;; If you need to specify the TypeScript SDK path
+;; (setq-default eglot-workspace-configuration
+;;               '((:typescript . (:tsdk "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript/lib"))))
+
+;; ;; For Angular-specific configuration
+;; (with-eval-after-load 'eglot
+;;   (add-to-list 'eglot-server-programs
+;;                `(angular-mode . ("ngserver" "--stdio" "--tsProbeLocations" "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript" "--ngProbeLocations" "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/@angular/language-service"))))
+
+;; (defun my/eglot-set-typescript-server-args ()
+;;   (when (and buffer-file-name (string-match-p "\\.spec\\.ts$" buffer-file-name))
+;;     (setq-local eglot-server-programs
+;;                 `((typescript-mode . ("typescript-language-server" "--stdio"
+;;                                       "--tsserver-path"
+;;                                       ,(expand-file-name "tsconfig.spec.json"
+;;                                                          (projectile-project-root)))))))
+
+;; (add-hook 'typescript-mode-hook #'my/eglot-set-typescript-server-args)
+;; (add-hook 'angular-mode-hook #'my/eglot-set-typescript-server-args)
+
+;; (map! :leader
+;;       :desc "Find references"
+;;       "c r" #'eglot-find-references
+;;       :desc "Rename symbol"
+;;       "c R" #'eglot-rename
+;;       :desc "Format buffer"
+;;       "c f" #'eglot-format-buffer)
+
+(defun paste-file-contents ()
+  "Clear the current buffer's contents and paste the contents from the clipboard."
+  (interactive)
+  (delete-region (point-min) (point-max))
+  (yank)
+  (message "Pasted clipboard contents into the current file"))
+
+(map! :leader
+      :desc "Paste file contents"
+      "f p" #'paste-file-contents)
+
+(use-package! keyfreq
+  :config
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))

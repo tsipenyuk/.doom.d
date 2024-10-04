@@ -59,38 +59,11 @@
 (package! tide)
 (package! all-the-icons)
 (package! reformatter)
+(package! jenkinsfile-mode)
+(package! groovy-mode)
+(package! jest-test-mode)
+(package! exec-path-from-shell)
+(package! lsp-mode)
+(package! editorconfig)
 
-;; (package! ng2-mode)
-;; (package! vue-mode)
-;; (package! edit-server)
-
-;; (package! js-import)
-
-;; (package! dash)
-;; (package! dash-functional)
-;; (package! ejira :recipe
-;;   (:host github
-;;    :repo "nyyManni/ejira"
-;;    :files ("*.el" "*.el")))
-
-;; (package! edn)
-;; (package! ox-reveal)
-;; (package! undo-fu)
-
-;; (package! lilypond)
-;; (package! rebox2)
-
-;; (package! openai
-;;  :recipe (:host github :repo "emacs-openai/openai"))
-
-;; (package! chatgpt
-;;  :recipe (:host github :repo "emacs-openai/chatgpt"))
-
-
-;; (package! eaf
-;;   :recipe (:host github :repo "emacs-eaf/emacs-application-framework"
-;;            :files ("~/.emacs.d/site-lisp/emacs-application-framework/eaf.el")))
-
-;; (package! eaf-browser
-;;   :recipe (:host github :repo "emacs-eaf/eaf-browser"
-;;            :files ("~/.emacs.d/site-lisp/emacs-application-framework/app/browser/eaf-browser.el")))
+(package! keyfreq)
