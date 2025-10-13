@@ -67,3 +67,9 @@
 (package! editorconfig)
 
 (package! keyfreq)
+
+(package! mermaid-mode)
+
+(package! mongo)
+(package! ob-mongo)
+(package! vue3-mode)

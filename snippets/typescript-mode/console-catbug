@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: console-catbug
+# key: c
+# --
+console.log('catbug $0', $0)

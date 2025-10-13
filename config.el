@@ -29,6 +29,8 @@
 (keyboard-translate ?\: ?\;)
 (keyboard-translate ?\; ?\:)
 
+(setq-default long-line-threshold 1000)
+
 ;; JSON Configuration
 (setq json-reformat:indent-width 2)
 (setq-default indent-tabs-mode nil
@@ -49,13 +51,27 @@
       "w z" #'windmove-swap-states-left
       "w Z" #'windmove-swap-states-right
       ";" #'async-shell-command
-      "f t" #'prettier-js
+      "f t" #'my/prettier-format-file
       "f o" #'find-file-other-window
       "w a" #'other-frame
       "o s" #'sql-postgres
       "b f" #'arts/format-buffer-and-save
       "f y" #'arts/copy-file-contents
       "f p" #'arts/paste-file-contents)
+
+(map! :leader
+      :desc "file management"
+      "b t" #'arts/run-bun-test
+      "j t" #'arts/run-jest-test
+      "j r" #'arts/run-project-jest-test
+      "j f" #'arts/search-project-for-file-at-point
+      "b b" #'arts/run-pnpm-build
+      ")" #'arts/import-relative-file-name-and-insert
+      "+" #'arts/search-project-for-export-word-at-point
+      "c p r" #'arts/copy-relative-file-name-to-clipboard
+      "c p a" #'arts/copy-file-name-to-clipboard
+      "c u" #'my/copy-directory-contents-with-limit
+      "c f" #'my/prettier-format-directory)
 
 (map! :leader
       (:prefix ("l" . "line")
@@ -95,6 +111,14 @@
   (interactive)
   (mapc 'kill-buffer (buffer-list)))
 
+(defun arts/run-pnpm-build ()
+  "Run 'pnpm run build' from the folder of the current file."
+  (interactive)
+  (when-let ((filename (buffer-file-name)))
+    (let* ((default-directory (file-name-directory filename))
+           (command "pnpm run build"))
+      (shell-command command))))
+
 (defun arts/run-bun-test ()
   "Run 'bun test <filename>' from the folder of the current file."
   (interactive)
@@ -102,6 +126,27 @@
     (let* ((default-directory (file-name-directory filename))
            (command (concat "bun test " (file-name-nondirectory filename))))
       (shell-command command))))
+
+(defun arts/run-jest-test ()
+  "Run 'pnpm run test <filename>' from the folder of the current file."
+  (interactive)
+  (when-let ((filename (buffer-file-name)))
+    (let* ((default-directory (file-name-directory filename))
+           (command (concat "pnpm run test " (file-name-nondirectory filename))))
+      (shell-command command))))
+
+(defun arts/run-project-jest-test ()
+  "Run 'pnpm run test' from the folder of the current file."
+  (interactive)
+  (when-let ((filename (buffer-file-name)))
+    (let* ((default-directory (file-name-directory filename))
+           (command "pnpm run test"))
+      (shell-command command))))
+
+(defun arts/search-project-for-file-at-point ()
+  "Execute the key sequence: y $ SPC w l SPC SPC Ctrl-y"
+  (interactive)
+  (execute-kbd-macro (kbd "y $ SPC w l")))
 
 (defun arts/format-buffer-and-save ()
   "Format the current buffer using prettier-js and save the buffer."
@@ -138,7 +183,7 @@
   "Search the project for 'export .* <word-at-point>' and open the buffer with the first match."
   (interactive)
   (if-let ((word (arts/get-word-at-point)))
-      (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|async\\s+function\\|function\\|enum\\|const\\)\\s+" word)))
+      (let ((search-query (concat "export\\s+\\(type\\|interface\\|class\\|async\\s+function\\|function\\|enum\\|abstract.class\\|const\\)\\s+" word)))
         (cond
          ((modulep! :completion ivy)
           (counsel-rg search-query (projectile-project-root)))
@@ -190,10 +235,51 @@
     (while (< (current-column) 80)
       (insert-char char))))
 
+(defun arts/insert-ad-import (package-name)
+  "Insert an @arzt-direkt import statement for the JavaScript word at point.
+PACKAGE-NAME is the package after @arzt-direkt/"
+  (let* ((word (arts/get-word-at-point))
+         (import-statement (format "import { %s } from '%s'\n" word package-name)))
+    (save-excursion
+      (goto-char (point-min))
+      (insert import-statement))))
+
+(map! :leader
+      :desc "Insert WFA import"
+      "i a d" (lambda () (interactive) (arts/insert-ad-import "@arzt-direkt/wfa-definitions"))
+      "i a e u" (lambda () (interactive) (arts/insert-ad-import "@arzt-direkt/e2e-utils"))
+      "i a u" (lambda () (interactive) (arts/insert-ad-import "@arzt-direkt/utils"))
+      "i a n u" (lambda () (interactive) (arts/insert-ad-import "@arzt-direkt/wfa-node-utils"))
+      "i a n d" (lambda () (interactive) (arts/insert-ad-import "@arzt-direkt/wfa-node-definitions"))
+      "i a j" (lambda () (interactive) (arts/insert-ad-import "@jest/globals")))
+
+(map! :leader
+      :desc "Build definitions"
+      "b a d d" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/definitions build"))
+
+      :desc "Build definitions backend"
+      "b a d b" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/definitions-backend build"))
+
+      :desc "Build e2e-utils"
+      "b a e u" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/e2e-utils build"))
+
+      :desc "Build wfa-definitions"
+      "b a w d" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/wfa-definitions build"))
+
+      :desc "Build wfa-generic-utils"
+      "b a w u" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/wfa-generic-utils build"))
+
+      :desc "Build wfa-node-utils"
+      "b a w n u" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/wfa-node-utils build"))
+
+      :desc "Build wfa-node-definitions"
+      "b a w n d" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/wfa-node-definitions build")))
+
 ;; Mode-specific configurations
-(add-hook 'js2-mode-hook 'prettier-js-mode)
-(add-hook 'typescript-mode-hook 'prettier-js-mode)
+;; (add-hook 'js2-mode-hook 'prettier-js-mode)
+;; (add-hook 'typescript-mode-hook 'prettier-js-mode)
 (add-hook 'typescript-mode-hook (lambda () (setq typescript-indent-level 2)))
+(add-to-list 'auto-mode-alist '("\\.syncpackrc\\'" . json-mode))
 
 (after! typescript-mode
   (map! :map typescript-mode-map
@@ -208,6 +294,8 @@
             (map! :leader
                   :desc "Format buffer and save"
                   "b f" #'arts/format-json-buffer-and-save)))
+
+;; (add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
 
 ;; LilyPond configuration
 (use-package! lilypond-mode
@@ -299,3 +387,181 @@
                          "--tab-width" "2"
                          "--semi" "false"
                          "--single-quote" "true"))
+
+;; Copy the current buffer file name
+(defun arts/copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+
+
+(defun arts/copy-relative-file-name-to-clipboard ()
+  "Copy the current buffer file name as a relative path to the file open in the other buffer to the clipboard, prepended with './'."
+  (interactive)
+  (let* ((current-buffer-filename (if (equal major-mode 'dired-mode)
+                                      default-directory
+                                    (buffer-file-name)))
+         (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
+                                  (if (equal major-mode 'dired-mode)
+                                      default-directory
+                                    (buffer-file-name))))
+         (relative-path (when (and current-buffer-filename other-buffer-filename)
+                          (concat "./" (file-relative-name current-buffer-filename (file-name-directory other-buffer-filename))))))
+    (if relative-path
+        (progn
+          (kill-new relative-path)
+          (message "Copied relative file name '%s' to the clipboard." relative-path))
+      (message "Could not determine the relative path."))))
+
+;; Configure Eglot for TypeScript
+(after! eglot
+  (add-to-list 'eglot-server-programs
+               '((typescript-mode typescript-tsx-mode) .
+                 ("typescript-language-server" "--stdio"
+                  :initializationOptions (:tsserver (:typescript-tsdk "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript/lib/"))))))
+
+(use-package! mermaid-mode
+  :config
+  (setq mermaid-mmdc-location "/path/to/mmdc"))
+
+(setq +format-on-save-disabled-modes '(sh-mode))
+(add-hook! 'sh-mode-hook (format-all-mode -1))
+
+;; Configure mongo and org-babel support
+(use-package! mongo
+  :config
+  ;; Set any mongo-specific configurations here
+  )
+
+(use-package! ob-mongo
+  :after org
+  :config
+  (add-to-list 'org-babel-load-languages '(mongo . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+
+;; SSH tunnel function for MongoDB connections
+(defun my/create-ssh-tunnel (host port user key local-port remote-host remote-port)
+  "Create SSH tunnel for MongoDB connection"
+  (interactive)
+  (let ((cmd (format "ssh -i %s -L %d:%s:%d %s@%s -N -f"
+                    key local-port remote-host remote-port user host)))
+    (async-shell-command cmd "*SSH Tunnel*")
+    (message "SSH tunnel created: %s" cmd)))
+
+;; Function to create a MongoDB connection using mongosh
+(defun my/connect-mongodb (connection-string &optional db-name)
+  "Connect to MongoDB with the specified connection string and optional database"
+  (interactive "sConnection string: \nsDatabase (optional): ")
+  (let ((buffer-name (if (string= "" db-name)
+                         "*MongoDB*"
+                       (format "*MongoDB-%s*" db-name)))
+        (command (if (string= "" db-name)
+                     (format "mongosh \"%s\"" connection-string)
+                   (format "mongosh \"%s/%s\"" connection-string db-name))))
+    (start-process-shell-command "mongodb" buffer-name command)
+    (switch-to-buffer buffer-name)
+    (comint-mode)
+    (message "Connected to MongoDB")))
+
+;; Function to connect with SSH tunnel
+(defun my/connect-mongodb-with-ssh-tunnel (conn-string ssh-host ssh-port ssh-user ssh-key &optional db-name)
+  "Connect to MongoDB with SSH tunnel"
+  (interactive)
+  (my/create-ssh-tunnel ssh-host ssh-port ssh-user ssh-key 9203 "localhost" 27017)
+  (my/connect-mongodb conn-string db-name))
+
+(defun my/copy-directory-contents-with-limit ()
+  "Copy the concatenated contents of all files in the current buffer's directory,
+limited to 3000 lines total."
+  (interactive)
+  (let* ((current-file (buffer-file-name))
+         (directory (when current-file (file-name-directory current-file)))
+         (all-files (when directory
+                      (directory-files directory t "^[^.]" t)))
+         (total-lines 0)
+         (result-buffer (get-buffer-create "*Directory Contents*"))
+         (line-limit 3000))
+
+    ;; Check if we're in a file buffer
+    (unless current-file
+      (user-error "Current buffer is not visiting a file"))
+
+    ;; Clear the result buffer
+    (with-current-buffer result-buffer
+      (erase-buffer))
+
+    ;; Loop through each file and append contents
+    (dolist (file all-files)
+      (when (and (file-regular-p file)
+                 (file-readable-p file)
+                 (< total-lines line-limit))
+        (let ((file-content (with-temp-buffer
+                             (insert-file-contents file)
+                             (buffer-string)))
+              (file-lines (with-temp-buffer
+                           (insert-file-contents file)
+                           (count-lines (point-min) (point-max)))))
+
+          (when (< total-lines line-limit)
+            (let ((lines-to-copy (min file-lines (- line-limit total-lines))))
+              (with-current-buffer result-buffer
+                (insert (format "--- File: %s ---\n" (file-name-nondirectory file)))
+
+                ;; Insert the actual content, limited by lines
+                (let ((temp-buffer (generate-new-buffer " *temp*")))
+                  (with-current-buffer temp-buffer
+                    (insert file-content)
+                    (goto-char (point-min))
+                    (let ((end-point (progn
+                                      (forward-line lines-to-copy)
+                                      (if (eobp) (point) (1- (point))))))
+                      (with-current-buffer result-buffer
+                        (insert-buffer-substring temp-buffer (point-min) end-point)
+                        (insert "\n\n"))))
+                  (kill-buffer temp-buffer)))
+
+              (setq total-lines (+ total-lines lines-to-copy)))))))
+
+    ;; Copy the final result to the kill ring
+    (with-current-buffer result-buffer
+      (kill-ring-save (point-min) (point-max))
+      (message "Copied %d lines from %d files in %s"
+               total-lines
+               (length all-files)
+               directory))
+
+    ;; Show the buffer for verification
+    (switch-to-buffer-other-window result-buffer)))
+
+(defun my/prettier-format-directory ()
+  "Run prettier --write . in the directory of the current buffer."
+  (interactive)
+  (let ((default-directory (file-name-directory (buffer-file-name))))
+    (compile "prettier --write .")))
+
+(defun my/prettier-format-file ()
+  "Run prettier on current file and refresh buffer."
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (default-directory (file-name-directory file)))
+    (shell-command (format "npx prettier --write %s"
+                          (shell-quote-argument (file-name-nondirectory file))))
+    (revert-buffer nil t t)))
+
+;; ;; Magit Configuration
+;; (after! magit
+;;   (setq magit-log-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+;;   (setq magit-status-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18)))
+
+(defalias 'replace-import-by-shared-angular
+   (kmacro "t ' l l c t ' @ a r z t - d i r e k t / s h a r e d - a n g u l a r <escape> 0 SPC f s"))
+
+
+(map! :leader
+      "e s" #'save-buffer
+      "m i s a" #'replace-import-by-shared-angular)
