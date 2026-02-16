@@ -52,24 +52,33 @@
 (package! solarized-theme)
 
 (package! restclient)
-(package! prettier-js)
-(package! prettier-rc)
+;; Formatter packages - disabled for performance, use manual formatting
+;; (package! prettier-js)
+;; (package! prettier-rc)
 (package! emacs-everywhere)
 (package! rebox2)
-(package! tide)
+;; (package! tide)  ; Disabled, using eglot instead
 (package! all-the-icons)
 (package! reformatter)
 (package! jenkinsfile-mode)
 (package! groovy-mode)
 (package! jest-test-mode)
 (package! exec-path-from-shell)
-(package! lsp-mode)
+;; (package! lsp-mode)  ; Already included in Doom with eglot
 (package! editorconfig)
 
-(package! keyfreq)
+;; (package! keyfreq)  ; Disabled for performance
 
 (package! mermaid-mode)
 
+;; MongoDB packages - only if you actively use them
 (package! mongo)
 (package! ob-mongo)
 (package! vue3-mode)
+
+;; GitHub Copilot
+;; (package! copilot
+;;   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+
+;; Telegram client
+(package! telega)

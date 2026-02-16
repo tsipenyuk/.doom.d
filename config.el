@@ -17,11 +17,18 @@
       org-roam-directory "~/Dropbox/org/roam/"
       org-agenda-files (list org-directory org-roam-directory))
 
-;; Global Settings
+;; Global Settings - optimized for performance
 (setq kill-whole-line t
-      confirm-kill-emacs nil)
+      confirm-kill-emacs nil
+      ;; Performance optimizations
+      gc-cons-threshold (* 100 1024 1024)  ; 100mb
+      read-process-output-max (* 1024 1024) ; 1mb
+      company-idle-delay 0.3               ; Faster completion
+      lsp-idle-delay 0.5)                  ; Slower LSP updates
+
 (global-subword-mode 1)
-(which-key-mode)
+;; Disabled which-key for performance - use SPC h k for help instead
+;; (which-key-mode)
 
 ;; Custom Key Translations
 (keyboard-translate ?\C-t ?\C-x)
@@ -54,7 +61,6 @@
       "f t" #'my/prettier-format-file
       "f o" #'find-file-other-window
       "w a" #'other-frame
-      "o s" #'sql-postgres
       "b f" #'arts/format-buffer-and-save
       "f y" #'arts/copy-file-contents
       "f p" #'arts/paste-file-contents)
@@ -275,11 +281,21 @@ PACKAGE-NAME is the package after @arzt-direkt/"
       :desc "Build wfa-node-definitions"
       "b a w n d" (lambda () (interactive) (shell-command "cd ~/git/arzt-direkt && pnpm --filter @arzt-direkt/wfa-node-definitions build")))
 
-;; Mode-specific configurations
+;; Mode-specific configurations - optimized
+;; Disabled automatic prettier to improve performance
 ;; (add-hook 'js2-mode-hook 'prettier-js-mode)
 ;; (add-hook 'typescript-mode-hook 'prettier-js-mode)
 (add-hook 'typescript-mode-hook (lambda () (setq typescript-indent-level 2)))
 (add-to-list 'auto-mode-alist '("\\.syncpackrc\\'" . json-mode))
+
+;; Performance: optimize TypeScript mode
+(add-hook 'typescript-mode-hook
+          (lambda ()
+            (setq-local company-idle-delay 0.3)  ; Reasonable completion delay
+            ;; Use flymake instead of flycheck for better eglot integration
+            (when (featurep 'flycheck) (flycheck-mode -1))
+            ;; Auto-start eglot for import validation
+            (eglot-ensure)))
 
 (after! typescript-mode
   (map! :map typescript-mode-map
@@ -346,11 +362,11 @@ PACKAGE-NAME is the package after @arzt-direkt/"
 ;; Spell checking
 (setq ispell-dictionary "en_US")
 
-;; Key frequency tracking
-(use-package! keyfreq
-  :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1))
+;; Key frequency tracking - disabled for performance
+;; (use-package! keyfreq
+;;   :config
+;;   (keyfreq-mode 1)
+;;   (keyfreq-autosave-mode 1))
 
 ;; Mail configuration
 (after! mu4e
@@ -385,7 +401,7 @@ PACKAGE-NAME is the package after @arzt-direkt/"
 (setq prettier-js-args '("--trailing-comma" "all"
                          "--bracket-spacing" "true"
                          "--tab-width" "2"
-                         "--semi" "false"
+                         "--semi" "true"
                          "--single-quote" "true"))
 
 ;; Copy the current buffer file name
@@ -418,12 +434,9 @@ PACKAGE-NAME is the package after @arzt-direkt/"
           (message "Copied relative file name '%s' to the clipboard." relative-path))
       (message "Could not determine the relative path."))))
 
-;; Configure Eglot for TypeScript
-(after! eglot
-  (add-to-list 'eglot-server-programs
-               '((typescript-mode typescript-tsx-mode) .
-                 ("typescript-language-server" "--stdio"
-                  :initializationOptions (:tsserver (:typescript-tsdk "/Users/user/.nvm/versions/node/v20.12.0/lib/node_modules/typescript/lib/"))))))
+;; Disable eglot/LSP - not working well with large files
+;; Use typescript-mode for syntax highlighting instead
+(setq eglot-autoshutdown t)
 
 (use-package! mermaid-mode
   :config
@@ -565,3 +578,42 @@ limited to 3000 lines total."
 (map! :leader
       "e s" #'save-buffer
       "m i s a" #'replace-import-by-shared-angular)
+
+(use-package! vue3-mode
+  :mode "\\.vue\\'")
+(add-to-list 'auto-mode-alist '("\\.vue\\'" . vue3-mode))
+
+;; GitHub Copilot Configuration
+;; (use-package! copilot
+;;   :hook (prog-mode . copilot-mode)
+;;   :bind (:map copilot-completion-map
+;;               ("<tab>" . 'copilot-accept-completion)
+;;               ("TAB" . 'copilot-accept-completion)
+;;               ("C-TAB" . 'copilot-accept-completion-by-word)
+;;               ("C-<tab>" . 'copilot-accept-completion-by-word))
+;;   :config
+;;   (setq copilot-idle-delay 0.1))
+
+;; Telegram client configuration
+(use-package! telega
+  :defer t
+  :config
+  ;; Use telega's built-in server instead of system TDLib
+  (setq telega-use-docker nil
+        telega-server-libs-prefix nil)
+  
+  (setq telega-proxies
+        (list
+         '(:server "127.0.0.1" :port 1080 :enable :false
+                   :type (:@type "proxyTypeSocks5"))))
+  
+  ;; Enable notifications
+  (setq telega-notifications-mode t)
+  
+  ;; Custom keybindings for telega
+  (map! :leader
+        (:prefix ("t" . "telegram")
+         "t" #'telega
+         "r" #'telega-browse-url
+         "c" #'telega-chat-with
+         "n" #'telega-notifications-mode)))
