@@ -73,6 +73,7 @@
       "j f" #'arts/search-project-for-file-at-point
       "b b" #'arts/run-pnpm-build
       ")" #'arts/import-relative-file-name-and-insert
+      "2" #'arts/export-relative-file-name-and-insert
       "+" #'arts/search-project-for-export-word-at-point
       "c p r" #'arts/copy-relative-file-name-to-clipboard
       "c p a" #'arts/copy-file-name-to-clipboard
@@ -201,9 +202,9 @@
           (projectile-ripgrep search-query))))
     (message "No word at point.")))
 
-(defun arts/import-relative-file-name-and-insert ()
-  "Insert an import statement for the word at point from the relative path of the current file."
-  (interactive)
+(defun arts/insert-relative-file-statement (format-string)
+  "Generic function to insert a statement (import/export) for the word at point from relative path.
+FORMAT-STRING should be a format string like 'import { %s } from \"./%s\"\\n' with two placeholders."
   (let* ((current-buffer-filename (buffer-file-name))
          (other-buffer-filename (with-current-buffer (other-buffer (current-buffer) 1)
                                   (buffer-file-name)))
@@ -216,9 +217,19 @@
         (with-current-buffer (other-buffer (current-buffer) 1)
           (save-excursion
             (goto-char (point-min))
-            (insert (format "import { %s } from './%s'\n" word-at-point relative-path)))
-          (message "Inserted relative import '%s' with word '%s'." relative-path word-at-point))
+            (insert (format format-string word-at-point relative-path)))
+          (message "Inserted relative statement '%s' with word '%s'." relative-path word-at-point))
       (message "Could not determine the relative path."))))
+
+(defun arts/import-relative-file-name-and-insert ()
+  "Insert an import statement for the word at point from the relative path of the current file."
+  (interactive)
+  (arts/insert-relative-file-statement "import { %s } from './%s'\n"))
+
+(defun arts/export-relative-file-name-and-insert ()
+  "Insert an export statement for the word at point from the relative path of the current file."
+  (interactive)
+  (arts/insert-relative-file-statement "export { %s } from './%s'\n"))
 
 (defun arts/copy-file-contents ()
   "Copy the entire contents of the current buffer to the kill ring."
